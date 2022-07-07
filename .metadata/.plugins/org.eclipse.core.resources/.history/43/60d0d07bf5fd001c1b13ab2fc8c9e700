@@ -1,0 +1,14 @@
+package api.FinalProject.starter.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+@Service
+public class OrderService {
+	private List<Object> order = new ArrayList<Object>();
+	
+	public List<Object> getOrder(){
+		return order;
+	}
+}

@@ -1,0 +1,115 @@
+package api.FinalProject.starter.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.stereotype.Service;
+
+import api.FinalProject.starter.resources.containers.BigContainer;
+import api.FinalProject.starter.resources.containers.SmallContainer;
+import api.FinalProject.starter.resources.items.Item;
+
+@Service
+public class OrderService {
+	private List<Item> order = new ArrayList<Item>();
+	private BigContainer biggie = new BigContainer(0);
+	private SmallContainer smalls = new SmallContainer(0);
+	
+	public List<Item> getOrder(){
+		return order;
+	}
+	
+	public BigContainer exportBig() {
+		return biggie;
+	}
+	
+	public SmallContainer exportSmall() {
+		return smalls;
+	}
+	
+	public Item getItemByName(String itemName) {
+		return order.stream().filter(t -> t.getItemName().equals(itemName)).findFirst().get();
+	}
+	
+	public void addItem(Item i) {
+		order.add(i);
+	}
+	
+	public void deleteItem(String itemName) {
+		int index = order.indexOf(order.stream().filter(t -> t.getItemName().equals(itemName)).findFirst().get());
+		order.remove(index);
+	}
+	
+	public double orderVolume(List<Item> order) {
+		double totalVolume = 0;
+		for(Item value : order) {
+			totalVolume += (value.getVolume() * value.getAmount());
+		}
+		return totalVolume;
+	}
+	
+	public double orderWeight(List<Item> order) {
+		double totalWeight = 0;
+		for(Item value : order) {
+			totalWeight += (value.getWeight() * value.getAmount());
+		}
+		return totalWeight;
+	}
+	
+	public String bestShippingMethod(List<Item> order, BigContainer biggie, SmallContainer smalls) {
+		double localVolume = orderVolume(order);
+		double localWeight = orderWeight(order);
+		double smallVolume = smalls.getContainerVolume();
+		double bigVolume = biggie.getContainerVolume();
+		//the counter variable stores the amount of objects from the order that have already been packed into a container
+		int counter = 0;
+		//when the packed items equals the items of the order, the program stops packing items
+		while(counter != order.size()){
+			double temp = 0;
+			if(localVolume > smallVolume) {
+				//every time a big container is added, the object's amount is updated
+				biggie.setAmount(biggie.getAmount() + 1);
+				//this loop goes through the order looking for objects that are not still in a container
+				for(Item value : order) {
+					while(!((value).getAmount() == 0) && ((temp + value.getVolume()) < bigVolume) && !(value.getAmount() == 0)) {
+						temp += value.getVolume();
+						value.setAmount(value.getAmount() - 1);
+						localVolume -= value.getVolume();
+						localWeight -= value.getWeight();
+					}
+					if(value.getAmount() == 0) {
+						counter += 1;
+						continue;
+					}
+				}
+			}
+			else {
+				//if there's the need, there will be only one small container
+				smalls.setAmount(smalls.getAmount() + 1);
+				smalls.setWeight(localWeight);
+				//same than the loop for the big container
+				for(Item value : order) {
+					while(!(value.getAmount() == 0) && !(value.getAmount() == 0)) {
+						temp += value.getVolume();
+						value.setAmount(value.getAmount() - 1);
+						localVolume -= value.getVolume();
+					}
+					if(value.getAmount() == 0) {
+						counter += 1;
+						continue;
+					}
+				}
+			}
+		}
+		double cost = shippingCost(biggie, smalls);
+		String result = "Big containers used: " + biggie.getAmount() + '\n'
+				+ "Small containers used: " + smalls.getAmount() + '\n'
+				+ "Shipping cost: " + cost;
+		return result;
+	}
+
+	public double shippingCost(BigContainer biggie, SmallContainer smalls) {
+		return ((biggie.getAmount() * 1800) + ((smalls.getAmount()) * (smalls.getWeight() < 500 ? 1000 : 1200)));
+	}
+	
+	
+}

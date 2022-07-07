@@ -1,0 +1,8 @@
+package api.FinalProject.starter;
+
+public class HermodApi {
+
+	public static void main(String[] args) {
+		SpringApplication.run(HermodApi.class, args);
+	}
+}
