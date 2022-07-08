@@ -1,48 +1,57 @@
 package api.FinalProject.starter.service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import api.FinalProject.starter.resources.containers.BigContainer;
 import api.FinalProject.starter.resources.containers.SmallContainer;
+import api.FinalProject.starter.resources.items.CylindricalBox;
 import api.FinalProject.starter.resources.items.Item;
 
 @Service
 public class OrderService {
-	private List<Item> order = new ArrayList<Item>();
+	private List<Object> order = new ArrayList<Object>();
 	private BigContainer biggie = new BigContainer(0);
 	private SmallContainer smalls = new SmallContainer(0);
 	
-	public List<Item> getOrder(){
+	public List<Object> getOrder(){
 		return order;
 	}
 	
-	public Item getItemByName(String itemName) {
-		return order.stream().filter(t -> t.getItemName().equals(itemName)).findFirst().get();
+	public Object getItemByName(String itemName) {
+		return (Item) order.stream().filter(t -> ((Item) t).getItemName().equals(itemName)).findFirst().get();
 	}
 	
-	public void addItem(Item i) {
-		order.add(i);
+	public void addItem(Object item) {
+		String baseShape = (String) ((LinkedHashMap)item).get("baseShape");
+		if(baseShape.equals("circle")) {
+			//create a cs object to calculate the volume
+			//update the value of the linkedhashmap so it can be added
+		}
+		order.add(item);
 	}
 	
 	public void deleteItem(String itemName) {
-		int index = order.indexOf(order.stream().filter(t -> t.getItemName().equals(itemName)).findFirst().get());
+		int index = order.indexOf(order.stream().filter(t -> ((Item) t).getItemName().equals(itemName)).findFirst().get());
 		order.remove(index);
 	}
 	
-	public double orderVolume(List<Item> order) {
+	public double orderVolume(List<Object> order) {
 		double totalVolume = 0;
-		for(Item value : order) {
-			totalVolume += (value.getVolume() * value.getAmount());
+		for(Object value : order) {
+			totalVolume += (((Item) value).getVolume() * ((Item) value).getAmount());
 		}
 		return totalVolume;
 	}
 	
-	public double orderWeight(List<Item> order) {
+	public double orderWeight(List<Object> order) {
 		double totalWeight = 0;
-		for(Item value : order) {
-			totalWeight += (value.getWeight() * value.getAmount());
+		for(Object value : order) {
+			totalWeight += (((Item) value).getWeight() * ((Item) value).getAmount());
 		}
 		return totalWeight;
 	}
@@ -61,14 +70,14 @@ public class OrderService {
 				//every time a big container is added, the object's amount is updated
 				biggie.setAmount(biggie.getAmount() + 1);
 				//this loop goes through the order looking for objects that are not still in a container
-				for(Item value : order) {
-					while(!((value).getAmount() == 0) && ((temp + value.getVolume()) < bigVolume) && !(value.getAmount() == 0)) {
-						temp += value.getVolume();
-						value.setAmount(value.getAmount() - 1);
-						localVolume -= value.getVolume();
-						localWeight -= value.getWeight();
+				for(Object value : order) {
+					while(!(((Item) value).getAmount() == 0) && ((temp + ((Item) value).getVolume()) < bigVolume) && !(((Item) value).getAmount() == 0)) {
+						temp += ((Item) value).getVolume();
+						((Item) value).setAmount(((Item) value).getAmount() - 1);
+						localVolume -= ((Item) value).getVolume();
+						localWeight -= ((Item) value).getWeight();
 					}
-					if(value.getAmount() == 0) {
+					if(((Item) value).getAmount() == 0) {
 						counter += 1;
 						continue;
 					}
@@ -79,13 +88,13 @@ public class OrderService {
 				smalls.setAmount(smalls.getAmount() + 1);
 				smalls.setWeight(localWeight);
 				//same than the loop for the big container
-				for(Item value : order) {
-					while(!(value.getAmount() == 0) && !(value.getAmount() == 0)) {
-						temp += value.getVolume();
-						value.setAmount(value.getAmount() - 1);
-						localVolume -= value.getVolume();
+				for(Object value : order) {
+					while(!(((Item) value).getAmount() == 0) && !(((Item) value).getAmount() == 0)) {
+						temp += ((Item) value).getVolume();
+						((Item) value).setAmount(((Item) value).getAmount() - 1);
+						localVolume -= ((Item) value).getVolume();
 					}
-					if(value.getAmount() == 0) {
+					if(((Item) value).getAmount() == 0) {
 						counter += 1;
 						continue;
 					}
