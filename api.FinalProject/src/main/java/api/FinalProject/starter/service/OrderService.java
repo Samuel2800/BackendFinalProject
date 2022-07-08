@@ -11,6 +11,8 @@ import api.FinalProject.starter.resources.containers.BigContainer;
 import api.FinalProject.starter.resources.containers.SmallContainer;
 import api.FinalProject.starter.resources.items.CylindricalBox;
 import api.FinalProject.starter.resources.items.Item;
+import api.FinalProject.starter.resources.items.PolygonBox;
+import api.FinalProject.starter.resources.items.RectangularBox;
 
 @Service
 public class OrderService {
@@ -27,12 +29,51 @@ public class OrderService {
 	}
 	
 	public void addItem(Object item) {
+		String itemName = (String) ((LinkedHashMap)item).get("itemName");
+		int amount = (Integer) ((LinkedHashMap)item).get("amount");
+		double weight =(double) ((LinkedHashMap)item).get("weight");
+		double x = (double) ((LinkedHashMap)item).get("x");
+		double y = (double) ((LinkedHashMap)item).get("y");
+		double height = (double) ((LinkedHashMap)item).get("height");
+		double volume = 0;
 		String baseShape = (String) ((LinkedHashMap)item).get("baseShape");
 		if(baseShape.equals("circle")) {
-			//create a cs object to calculate the volume
-			//update the value of the linkedhashmap so it can be added
+			CylindricalBox cb = new CylindricalBox(itemName, amount, weight, x, y, height, volume, baseShape);
+			volume = cb.calculateVolume(x, y, height);
+			if (volume < 75.587337) {
+				cb.setVolume(volume);
+				order.add(cb);
+			}
+			else {
+				order.add(null);
+			}
+			
 		}
-		order.add(item);
+		else if(baseShape.equals("rectangle")){
+			RectangularBox rb = new RectangularBox(itemName, amount, weight, x, y, height, volume, baseShape);
+			volume = rb.calculateVolume(x, y, height);
+			if (volume < 75.587337) {
+				rb.setVolume(volume);
+				order.add(rb);
+			}
+			else {
+				order.add(null);
+			}
+		}
+		else if(baseShape.equals("polygon")) {
+			PolygonBox pb = new PolygonBox(itemName, amount, weight, x, y, height, volume, baseShape);
+			volume = pb.calculateVolume(x, y, height);
+			if (volume < 75.587337) {
+				pb.setVolume(volume);
+				order.add(pb);
+			}
+			else {
+				order.add(null);
+			}
+		}
+		else {
+			order.add(null);
+		}
 	}
 	
 	public void deleteItem(String itemName) {
@@ -71,13 +112,14 @@ public class OrderService {
 				biggie.setAmount(biggie.getAmount() + 1);
 				//this loop goes through the order looking for objects that are not still in a container
 				for(Object value : order) {
-					while(!(((Item) value).getAmount() == 0) && ((temp + ((Item) value).getVolume()) < bigVolume) && !(((Item) value).getAmount() == 0)) {
+					int tempAmount = ((Item) value).getAmount();
+					while(!(tempAmount == 0) && ((temp + ((Item) value).getVolume()) < bigVolume)) {
 						temp += ((Item) value).getVolume();
-						((Item) value).setAmount(((Item) value).getAmount() - 1);
+						tempAmount -= 1;
 						localVolume -= ((Item) value).getVolume();
 						localWeight -= ((Item) value).getWeight();
 					}
-					if(((Item) value).getAmount() == 0) {
+					if(tempAmount == 0) {
 						counter += 1;
 						continue;
 					}
@@ -89,12 +131,13 @@ public class OrderService {
 				smalls.setWeight(localWeight);
 				//same than the loop for the big container
 				for(Object value : order) {
-					while(!(((Item) value).getAmount() == 0) && !(((Item) value).getAmount() == 0)) {
+					int tempAmount = ((Item) value).getAmount();
+					while(!(tempAmount == 0) && !(((Item) value).getAmount() == 0)) {
 						temp += ((Item) value).getVolume();
-						((Item) value).setAmount(((Item) value).getAmount() - 1);
+						tempAmount -= 1;
 						localVolume -= ((Item) value).getVolume();
 					}
-					if(((Item) value).getAmount() == 0) {
+					if(tempAmount == 0) {
 						counter += 1;
 						continue;
 					}
